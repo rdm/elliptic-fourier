@@ -1,8 +1,13 @@
 - [ ] https://www.biorxiv.org/content/10.1101/131730v1.full.pdf
 - [x] Plot it
+# Performance
+- [ ] At least measure some stuff?
+- [ ] Use the debugging tool
 # Packaging
 - [x] https://github.com/jsoftware/tables_csv/blob/master/manifest.ijs
 - [ ] Locales and whatnot
+# Documentation
+- [ ] joxygen
 # Invariants
 - [ ] K_ij https://sci-hub.si/https://www.sciencedirect.com/science/article/abs/pii/003132038790080X
 # Applications

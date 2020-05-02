@@ -10,7 +10,7 @@ succ_diff =: - sap
 delta_t =: dist &: succ_diff
 
 t =: dyad : '+/\ | (x delta_t y)'
-pi =: o. 1
+pi =: 1p1
 
 det =: -/ .*
 
@@ -19,15 +19,18 @@ cos =: 2 & o.
 
 tie_self =: ] , {.
 
-t_step =: t &: (0, tie_self)
+t_step =: (0&,) @: t &: tie_self
 
-NB. perimeter of a polygon (period in our case)
 T =: {: @: t_step
+
+delta =: succ_diff @: tie_self
+
+print_debug =: monad : 'y (1!:2) 2'
 
 NB. left argument an array containing the x coordinates, right argument an array containing the y coordinates
 offset =: 4 : 0
-    delta_xs =. succ_diff tie_self x
-    delta_ys =. succ_diff tie_self y
+    delta_xs =. delta x
+    delta_ys =. delta y
     delta_ts =. delta_xs dist delta_ys
 
     partial_xs =. +/\ delta_xs
@@ -35,6 +38,7 @@ offset =: 4 : 0
     partial_ts =. +/\ delta_ts
 
     xi =. partial_xs - (delta_xs % delta_ts) * partial_ts
+    NB. compare pyefd?
     delta =. partial_ys - (delta_ys % delta_ts) * partial_ts
 
     ts =. x t_step y
@@ -44,7 +48,8 @@ offset =: 4 : 0
     A =. (%&T) +/ (((delta_xs % 2 * delta_ts) * delta_tsq) + xi * delta_ts)
     C =. (%&T) +/ (((delta_ys % 2 * delta_ts) * delta_tsq) + delta * delta_ts)
 
-    A;C
+    NB. as here: https://github.com/hbldh/pyefd/blob/master/pyefd.py#L164
+    (A+({.x));(C+({.y))
 )
 
 coeff =: 4 : 0
@@ -54,7 +59,6 @@ coeff =: 4 : 0
     NB. tie at both (so we have t0 and tK equally
     T =. {: ts
     outer_coeff =. T % (2 * (*: n) * (*: pi))
-    delta =. succ_diff @: tie_self
     delta_xs =. delta xs
     delta_ys =. delta ys
     delta_ts =. delta_xs dist delta_ys
@@ -93,28 +97,31 @@ reconstitute =: dyad : 0
     X_n,Y_n
 )
 
-NB. missing a factor of two somewhere?
-radians =: 3 : 0
-    coeff =. 4 * pi % y
-    coeff * (i.y)
+NB. left argument period T, right argument number of points
+interval =: 4 : 0
+    coeff =. x % y
+    coeff * (i.>:y)
 )
 
 NB. left argument T right arugment result of box_coeffs
-circularize =: dyad : '|: ((x;y) & reconstitute) " 0 radians 140'
+NB.
+NB. This uses 200 points to make the shape.
+circularize =: dyad : '|: ((x;y) & reconstitute) " 0 (x interval 200)'
 
 NB. helper function to plot results of circularize
-NB. Left argument (A,C) offset
+NB. Left argument (A;C) offset
 plot_ef =: dyad : 0
     'A C' =. x
     ((A&+)@(0&{) ; (C&+)@(1&{)) y
 )
 
+with_coeffs =: adverb : 'u " 1 @ |:'
 NB. Invariants of Lin and Hwang, see https://www.sciencedirect.com/science/article/abs/pii/003132038790080X
-NB. monads taking results of coeffs (a 4xN array) as an argument
-J =: det " 1 @ |:
-I =: (+/ @: *:) " 1 @ |:
+NB. monads taking results of coeffs (a 4xN arry) as an argument
+J =: det with_coeffs
+I =: (+/ @: *:) with_coeffs
 
 NB. first n coefficients (in a 4x_ array)
-NB. left argument: (xs;ys) where xs, ys arrays containing coordinates, right argument n (the number of fourier coefficients to retunr)
+NB. left argument: (xs;ys) where xs, ys arrays containing coordinates, right argument n (the number of fourier coefficients to return)
 coeffs =: 4 : '{. |: (((x & coeff) " 0) (>: i.y))'
 box_coeffs =: <"1 @ coeffs
